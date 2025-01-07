@@ -17,18 +17,19 @@ chmod +x procurve-commander.sh
 
 ## Usage
 ```
-./procurve-commander.sh --host <host_name> --user <user_name> [--password=<password>] --commands "<command_list>" [--legacyKeys]
-```
+Procurve-commander 1.0.0: execute commands against an HP Procurve switch
 
-### Arguments
-| Argument       | Alias  | Description                                                                                       |
-|----------------|--------|---------------------------------------------------------------------------------------------------|
-| `--commands` | `-c` | Comma separated list of commands to execute against the switch                                        |
-| `--help`     | `-h` | Display this message and exit                                                                         |
-| `--host`     | `-H` | Hostname or IP address of the switch                                                                  |
-| `--user`     | `-u` | Username                                                                                              | 
-| `--password` | `-p` | Password                                                                                              |
-| `--legacy `  | `-l` | Force use of deprecated key algorithms when connecting - required when connecting to older switches   |
+Usage: ./procurve-commander.sh --host <host_name> --user <user_name> [--password=<password>] --commands <command_list> [--legacyKeys]
+
+   -c,  --commands     Comma separated list of commands to execute against the switch
+   -h,  --help         Display this message and exit
+
+Connection options:
+   -H,  --host         Hostname or IP address of the switch
+   -u,  --user         Username used to connect
+   -p,  --password     Password for user
+   -l,  --legacyKeys   Force use of deprecated key algorithms when connecting - required when connecting to older switches
+```
 
 ## Examples
 ```
