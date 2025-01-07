@@ -1,34 +1,68 @@
 #!/bin/bash -e
-# procurve-commander.sh
 
-# @description: Send commands to an HP Procurve switch
-# @env: SWITCH_PASSWORD (optional)
-#
+programName=$0
 
-USAGE="Usage: `basename $0` <user> <host> <commands (separated by comma)>"
+usage () {
+    cat <<HELP_USAGE
+Procurve-commander 1.0.0: execute commands against an HP Procurve switch
 
-if [ $# -lt "3" ] 
-then
-    echo $USAGE
-    exit 1 
-fi
+Usage: $programName --host <host_name> --user <user_name> [--password=<password>] --commands <command_list>
+
+   -c,  --commands     Comma separated list of commands to execute against the switch
+   -h,  --help         Display this message and exit
+
+Connection options:
+   -H,  --host         Hostname or IP address of the switch
+   -u,  --user         Username used to connect
+   -p,  --password     Password for user
+
+Example: ./procurve-commander.sh --user manager --host procurve.home --commands "show time"
+HELP_USAGE
+}
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --commands*|-c*)
+      if [[ "$1" != *=* ]]; then shift; fi
+      commandList="${1#*=}"
+      ;;
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    --host*|-H*)
+      if [[ "$1" != *=* ]]; then shift; fi
+      host="${1#*=}"
+      ;;
+    --password*|-p*)
+      if [[ "$1" != *=* ]]; then shift; fi
+      password="${1#*=}"
+      ;;
+    --user*|-u*)
+      if [[ "$1" != *=* ]]; then shift; fi
+      user="${1#*=}"
+      ;;
+    *)
+      >&2 printf "Unrecognised argument $1\n"
+      usage
+      exit 1
+      ;;
+  esac
+  shift
+done
 
 passwordSupplied=true
-if [ -z "$SWITCH_PASSWORD" ]
+if [ -z "$password" ]
 then
-    echo SWITCH_PASSWORD environment variable not set, will attempt passwordless login
+    echo password not supplied, will attempt passwordless login
     passwordSupplied=false
 fi
-
-user=$1
-host=$2
-commands=$3
 
 # set bash internal field separator to comma
 IFS=,
 
-# iterate through commands to build expect commands
-for command in $commands; do
+# iterate through commandList to build expect commands
+for command in $commandList; do
   # trim
   command=`echo $command |  xargs`
   toBeSent="${toBeSent}expect \"#\"; send \"$command\n\"; "
@@ -41,7 +75,7 @@ es="${es}  spawn ssh $user@$host;"
 if [ "$passwordSupplied" = true ] 
 then
   es="${es}  expect \"password\";"
-  es="${es}  send \"$SWITCH_PASSWORD\r\";"
+  es="${es}  send \"$password\r\";"
 fi
 es="${es}  expect \"continue\";"
 es="${es}  send \"\n\";"
