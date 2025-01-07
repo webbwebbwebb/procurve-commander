@@ -6,7 +6,7 @@ usage () {
     cat <<HELP_USAGE
 Procurve-commander 1.0.0: execute commands against an HP Procurve switch
 
-Usage: $programName --host <host_name> --user <user_name> [--password=<password>] --commands <command_list>
+Usage: $programName --host <host_name> --user <user_name> [--password=<password>] --commands <command_list> [--legacyKeys]
 
    -c,  --commands     Comma separated list of commands to execute against the switch
    -h,  --help         Display this message and exit
@@ -15,8 +15,9 @@ Connection options:
    -H,  --host         Hostname or IP address of the switch
    -u,  --user         Username used to connect
    -p,  --password     Password for user
+   -l,  --legacyKeys   Force use of deprecated key algorithms when connecting - required when connecting to older switches
 
-Example: ./procurve-commander.sh --user manager --host procurve.home --commands "show time"
+Example: ./procurve-commander.sh --user manager --host procurve.home --commands "show time" --legacyKeys
 HELP_USAGE
 }
 
@@ -33,6 +34,9 @@ while [ $# -gt 0 ]; do
     --host*|-H*)
       if [[ "$1" != *=* ]]; then shift; fi
       host="${1#*=}"
+      ;;
+    --legacyKeys|-l)
+      useLegacyKeyAlgorithms=true
       ;;
     --password*|-p*)
       if [[ "$1" != *=* ]]; then shift; fi
@@ -58,6 +62,11 @@ then
     passwordSupplied=false
 fi
 
+if [ "$useLegacyKeyAlgorithms" = true ] 
+then
+  sshArgs="-o KexAlgorithms=diffie-hellman-group14-sha1 -o HostKeyAlgorithms=ssh-rsa -m hmac-sha1-96"
+fi
+
 # set bash internal field separator to comma
 IFS=,
 
@@ -71,7 +80,7 @@ done
 # write the expect script into the $es variable
 es="expect -c '"
 es="${es}  set timeout 20;"
-es="${es}  spawn ssh $user@$host;"
+es="${es}  spawn ssh $sshArgs $user@$host;"
 if [ "$passwordSupplied" = true ] 
 then
   es="${es}  expect \"password\";"
