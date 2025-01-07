@@ -94,7 +94,9 @@ es="${es}  send \"exit\n\";"
 es="${es}  expect \">\";"
 es="${es}  send \"exit\n\";"
 es="${es}  expect \"log out\";"
-es="${es}  send \"y\""
+es="${es}  send \"y\";"
+es="${es}  expect eof;"
+es="${es}  wait"
 es="${es}  '"
 
 # reset IFS to default value (usually space)
@@ -103,5 +105,5 @@ unset IFS
 # execute the expect script
 eval $es
 
-# clean new line for prompt
-echo
+# swallow any control codes left at the terminal prompt
+read -e -t1
